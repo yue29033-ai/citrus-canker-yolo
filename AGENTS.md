@@ -1,0 +1,26 @@
+# Citrus Canker YOLO 项目规则
+
+## 数据集结构
+
+- 图片放在 `dataset/images/{train,val,test}`，标签放在 `dataset/labels/{train,val,test}`。
+- 图片与标签必须同名配对；无病斑的负样本也要保留一个空的 `.txt` 标签。
+- 类别固定为 `0: canker`，标注格式为 YOLO 检测格式：`class x_center y_center width height`。
+- 同一片物理叶片的不同角度、旋转、距离照片必须全部放在同一个集合，不能跨 `train`、`val`、`test`。
+- 允许保留重复或重压缩图片，但重复图与其原图必须位于同一集合。
+- `test` 只用于最终评估，不根据 test 结果反复调参。
+- 重新拆分数据后，旧的 `labels/*.cache` 移入 `dataset/cache_archive/<日期说明>/`，让 YOLO 重新扫描标签；归档目录不参与训练。
+
+## 数据变更验证
+
+每次新增、移动或重新标注后，必须检查：
+
+1. 每张图片都有同名标签，且没有孤立标签。
+2. 所有类别编号均为 `0`，坐标均在 `0–1` 范围内。
+3. 同一片叶片没有跨集合。
+4. `data.yaml` 仍指向 `images/train`、`images/val`、`images/test`。
+
+## 训练规则
+
+- 数据划分发生变化后，从 `yolo11n.pt` 重新训练，不使用旧实验的 `last.pt` 续训。
+- 每次实验使用新的 `name`，保留训练曲线和验证结果，避免覆盖旧实验。
+- 优先增加新的物理叶片和不同拍摄背景，而不是只增加同一片叶片的旋转照片。
