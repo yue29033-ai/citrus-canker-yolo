@@ -1,0 +1,12 @@
+model: yolo11n.pt
+ultralytics_version: 8.3.223
+image_size: 640
+batch_size: 16
+epochs_requested: 80
+epochs_completed: 24
+best_epoch: 9
+patience: 15
+device: cpu
+hardware: Apple M3
+training_time_minutes: 48.4
+checkpoint_sha256: 03c56a43b295e65514ab0605eb22c372c01c293d39f56f52ba92b47d9b4b3ee0

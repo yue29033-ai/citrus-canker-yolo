@@ -1,0 +1,3 @@
+split,checkpoint,epoch,images,instances,precision,recall,map50,map50_95,max_f1,confidence_at_max_f1,status
+val,best.pt,9,65,65,0.86129,0.61538,0.80407,0.27617,0.71,0.416,model-selection validation
+test,best.pt,9,55,77,0.161,0.429,0.122,0.0346,0.23,0.109,provisional pending annotation audit

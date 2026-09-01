@@ -1,0 +1,3 @@
+split,confidence,true_positive,false_positive,false_negative,note
+val,0.25,51,24,14,counts read from Ultralytics confusion matrix
+test,0.25,19,98,58,counts read from Ultralytics confusion matrix; false positives may include unlabeled lesions

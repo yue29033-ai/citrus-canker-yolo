@@ -27,6 +27,17 @@
 
 数据来源于甜橙叶片病害数据，经人工筛选、重新命名、YOLO 格式标注和按叶片分组。若要将仓库改为公开，请先确认原始数据集的再分发许可并补充正式引用信息。
 
+### 当前实验结果（train-3）
+
+`train-3` 在第 9 轮达到最佳验证结果，并因早停在第 24 轮结束：
+
+| 集合 | Precision | Recall | mAP50 | mAP50-95 |
+| --- | ---: | ---: | ---: | ---: |
+| val | 0.861 | 0.615 | 0.804 | 0.276 |
+| test | 0.161 | 0.429 | 0.122 | 0.035 |
+
+val 与 test 之间存在明显泛化差距，当前模型只能作为探索性基线，不能认为已经具备可靠识别能力。进一步检查还发现 test 标签存在漏标和病斑定义不一致的风险，因此 test 数值只能作为待复核的阶段性结果。完整分析、曲线和混淆矩阵见 [results/train-3/RESULTS.md](results/train-3/RESULTS.md)。
+
 ### 项目结构
 
 ```text
@@ -119,6 +130,17 @@ The current dataset contains 401 images and 455 annotated bounding boxes:
 The dataset is grouped by physical leaf instead of being randomly split image by image. Different rotations, distances, and viewing angles of the same leaf are kept within one split to reduce data leakage. Five recompressed or near-duplicate images are intentionally retained for the current experiment and placed in the training split together with their corresponding originals.
 
 The images were prepared from a sweet-orange leaf disease dataset and were manually selected, renamed, annotated in YOLO format, and grouped by leaf. Before making this repository public, verify the redistribution terms of the original dataset and add its formal citation.
+
+### Current Experiment Results (train-3)
+
+`train-3` reached its best validation result at epoch 9 and stopped at epoch 24 through early stopping:
+
+| Split | Precision | Recall | mAP50 | mAP50-95 |
+| --- | ---: | ---: | ---: | ---: |
+| val | 0.861 | 0.615 | 0.804 | 0.276 |
+| test | 0.161 | 0.429 | 0.122 | 0.035 |
+
+The large validation-to-test gap indicates weak generalization. This model should be treated as an exploratory baseline rather than a reliable detector. The test annotations also show possible missing boxes and inconsistent lesion definitions, so the test metrics are provisional pending an annotation audit. See [results/train-3/RESULTS.md](results/train-3/RESULTS.md) for the complete analysis, plots, and confusion matrices.
 
 ### Repository Structure
 
