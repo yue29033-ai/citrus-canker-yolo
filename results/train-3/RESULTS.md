@@ -132,6 +132,6 @@ Define a strict annotation protocol, audit every image, annotate every visible t
 
 ### Model Artifact
 
-The experimental `best.pt` checkpoint is distributed through the private GitHub Release tagged `train-3`. SHA-256:
+The experimental `best.pt` checkpoint is intentionally excluded from Git history and has not been uploaded. SHA-256 of the local checkpoint:
 
 `03c56a43b295e65514ab0605eb22c372c01c293d39f56f52ba92b47d9b4b3ee0`
