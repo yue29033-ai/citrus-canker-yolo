@@ -1,0 +1,4 @@
+split,images,instances,precision,recall,map50,map50_95,role
+val,117,190,0.64598,0.55789,0.57757,0.19316,model_selection
+diagnostic_test_best,78,54,0.157,0.241,0.128,0.0480,diagnostic_only
+diagnostic_test_last,78,54,0.208,0.185,0.135,0.0415,diagnostic_only

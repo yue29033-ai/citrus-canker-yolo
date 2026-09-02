@@ -5,7 +5,7 @@ ROOT = Path(__file__).resolve().parent
 IMAGE_ROOT = ROOT / "dataset" / "images"
 LABEL_ROOT = ROOT / "dataset" / "labels"
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
-EXPECTED_COUNTS = {"train": 281, "val": 65, "test": 55}
+EXPECTED_COUNTS = {"train": 468, "val": 117, "test": 78}
 
 
 def validate_split(split: str) -> tuple[int, int, int, int, list[str]]:

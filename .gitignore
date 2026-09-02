@@ -8,6 +8,17 @@ venv/
 runs/
 dataset/labels/*.cache
 dataset/cache_archive/
+dataset/label_archive/
+
+# Local backup copies created by desktop file synchronization
+/AGENTS 2.md
+/DATASET_SPLIT 2.md
+/DATASET_SPLIT 3.md
+/README 2.md
+/README 3.md
+/TRAINING 2.md
+/validate_dataset 2.py
+/validate_dataset 3.py
 
 # Model weights are generated or downloaded separately
 *.pt

@@ -15,28 +15,28 @@
 
 ### 数据集
 
-当前数据集包含 401 张图片和 455 个标注框：
+当前数据集包含 663 张图片和 906 个标注框：
 
 | 集合 | 图片数 | 标注框数 | 用途 |
 | --- | ---: | ---: | --- |
-| train | 281 | 313 | 模型训练 |
-| val | 65 | 65 | 模型选择与调参 |
-| test | 55 | 77 | 最终独立评估 |
+| train | 468 | 662 | 模型训练 |
+| val | 117 | 190 | 模型选择与调参 |
+| test | 78 | 54 | 最终独立评估 |
 
-数据不是按单张图片随机拆分，而是按物理叶片分组：同一片叶子的旋转、距离和角度变化只会出现在一个集合中，以减少数据泄漏。根据当前实验要求，5 张重压缩或近重复图片仍被保留，并与对应原图统一放在训练集。
+数据不是按单张图片随机拆分，而是按物理叶片分组：同一片叶子的旋转、距离和角度变化只会出现在一个集合中，以减少数据泄漏。train 中有 52 张空标签负样本，val 中有 20 张，test 中有 27 张。train 和 val 新增负样本分别来自健康叶和 9 种其他柑橘病虫害，来源清单见 `dataset/manifests/hard_negatives_2026-09-02.csv` 与 `dataset/manifests/hard_negatives_val_2026-09-02.csv`。
 
-数据来源于甜橙叶片病害数据，经人工筛选、重新命名、YOLO 格式标注和按叶片分组。若要将仓库改为公开，请先确认原始数据集的再分发许可并补充正式引用信息。
+数据来源于 Emon、Ahad 与 Rabbany 发布的 *Multi-format open-source sweet orange leaf dataset for disease detection, classification, and analysis*（Mendeley Data DOI：[10.17632/f7cr74mwpj.1](https://doi.org/10.17632/f7cr74mwpj.1)），原始数据采用 [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) 许可。本项目对其中部分图片进行了人工筛选、重新命名、重新标注和按叶片分组；使用或再分发时应保留原作者、数据集名称、DOI 与许可信息。
 
-### 当前实验结果（train-3）
+### 当前实验结果（train-5）
 
-`train-3` 在第 9 轮达到最佳验证结果，并因早停在第 24 轮结束：
+`train-5` 使用重新标注的数据和新增困难负样本，在第 43 轮达到最佳验证结果，并因早停在第 58 轮结束：
 
 | 集合 | Precision | Recall | mAP50 | mAP50-95 |
 | --- | ---: | ---: | ---: | ---: |
-| val | 0.861 | 0.615 | 0.804 | 0.276 |
-| test | 0.161 | 0.429 | 0.122 | 0.035 |
+| val | 0.646 | 0.558 | 0.578 | 0.193 |
+| 当前诊断 test | 0.157 | 0.241 | 0.128 | 0.048 |
 
-val 与 test 之间存在明显泛化差距，当前模型只能作为探索性基线，不能认为已经具备可靠识别能力。进一步检查还发现 test 标签存在漏标和病斑定义不一致的风险，因此 test 数值只能作为待复核的阶段性结果。完整分析、曲线和混淆矩阵见 [results/train-3/RESULTS.md](results/train-3/RESULTS.md)。
+困难负样本减少了部分误报，但诊断 test 仍存在明显的框尺度不一致：模型经常在正确中心给出比人工标签更紧的框，因 IoU 不足被统计成漏检。当前 test 已参与错误分析，不能作为最终未见测试集。完整分析、曲线、混淆矩阵与逐图诊断见 [results/train-5/RESULTS.md](results/train-5/RESULTS.md)；更早的基线保留在 [results/train-3/RESULTS.md](results/train-3/RESULTS.md)。
 
 ### 项目结构
 
@@ -83,26 +83,29 @@ yolo detect train \
   batch=16 \
   patience=15 \
   cache=False \
-  name=train-3
+  workers=0 \
+  name=train-5
 ```
 
-数据划分改变后应从 `yolo11n.pt` 重新训练，不要使用旧实验的 `last.pt` 续训。训练结束后优先使用 `runs/detect/train-3/weights/best.pt`。
+数据和标签改变后应从 `yolo11n.pt` 重新训练，不要使用旧实验的 `last.pt` 续训。训练结束后优先使用 `runs/detect/train-5/weights/best.pt`。
 
 ### 最终测试
 
 ```bash
 yolo detect val \
-  model=runs/detect/train-3/weights/best.pt \
+  model=runs/detect/train-5/weights/best.pt \
   data=data.yaml \
   split=test \
-  name=train-3-test
+  workers=0 \
+  name=train-5-test
 ```
 
-test 集只用于最终评估，不应根据 test 结果反复调参。更详细的操作说明见 [TRAINING.md](TRAINING.md)。
+当前 test 已用于上一轮错误分析，只作为阶段性诊断集；最终汇报前应另建完全未参与调参的外部测试集。更详细的操作说明见 [TRAINING.md](TRAINING.md)。
 
 ### 当前限制
 
 - 独立物理叶片数量仍然有限，指标只能作为阶段性结果。
+- val 中已有少量其他病害负样本，但类别内物理叶片数量仍然有限。
 - 拍摄背景以白色背景为主，实际果园环境下的泛化能力尚未验证。
 - 后续应优先增加新的叶片、自然背景、不同光照和不同病斑阶段，而不是只增加同一片叶子的旋转图片。
 
@@ -119,28 +122,28 @@ This project uses Ultralytics YOLO11 to detect citrus canker lesions on sweet-or
 
 ### Dataset
 
-The current dataset contains 401 images and 455 annotated bounding boxes:
+The current dataset contains 663 images and 906 annotated bounding boxes:
 
 | Split | Images | Boxes | Purpose |
 | --- | ---: | ---: | --- |
-| train | 281 | 313 | Model training |
-| val | 65 | 65 | Model selection and tuning |
-| test | 55 | 77 | Final independent evaluation |
+| train | 468 | 662 | Model training |
+| val | 117 | 190 | Model selection and tuning |
+| test | 78 | 54 | Final independent evaluation |
 
-The dataset is grouped by physical leaf instead of being randomly split image by image. Different rotations, distances, and viewing angles of the same leaf are kept within one split to reduce data leakage. Five recompressed or near-duplicate images are intentionally retained for the current experiment and placed in the training split together with their corresponding originals.
+The dataset is grouped by physical leaf instead of being randomly split image by image. Different rotations, distances, and viewing angles of the same leaf are kept within one split to reduce data leakage. The train, val, and test splits contain 52, 20, and 27 empty-label negative images, respectively. The new train and val negatives come from healthy leaves and nine other citrus disease or pest categories. Their source manifests are stored at `dataset/manifests/hard_negatives_2026-09-02.csv` and `dataset/manifests/hard_negatives_val_2026-09-02.csv`.
 
-The images were prepared from a sweet-orange leaf disease dataset and were manually selected, renamed, annotated in YOLO format, and grouped by leaf. Before making this repository public, verify the redistribution terms of the original dataset and add its formal citation.
+The source images come from the dataset by Emon, Ahad, and Rabbany, *Multi-format open-source sweet orange leaf dataset for disease detection, classification, and analysis* (Mendeley Data DOI: [10.17632/f7cr74mwpj.1](https://doi.org/10.17632/f7cr74mwpj.1)), licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). This project manually selected, renamed, re-annotated, and grouped a subset of the images. Reuse or redistribution should preserve the authors, dataset title, DOI, and license information.
 
-### Current Experiment Results (train-3)
+### Current Experiment Results (train-5)
 
-`train-3` reached its best validation result at epoch 9 and stopped at epoch 24 through early stopping:
+`train-5` used the revised annotations and new hard negatives. It reached its best validation result at epoch 43 and stopped at epoch 58 through early stopping:
 
 | Split | Precision | Recall | mAP50 | mAP50-95 |
 | --- | ---: | ---: | ---: | ---: |
-| val | 0.861 | 0.615 | 0.804 | 0.276 |
-| test | 0.161 | 0.429 | 0.122 | 0.035 |
+| val | 0.646 | 0.558 | 0.578 | 0.193 |
+| current diagnostic test | 0.157 | 0.241 | 0.128 | 0.048 |
 
-The large validation-to-test gap indicates weak generalization. This model should be treated as an exploratory baseline rather than a reliable detector. The test annotations also show possible missing boxes and inconsistent lesion definitions, so the test metrics are provisional pending an annotation audit. See [results/train-3/RESULTS.md](results/train-3/RESULTS.md) for the complete analysis, plots, and confusion matrices.
+The hard negatives reduced some false positives, but the diagnostic test still has a systematic box-size mismatch: predictions often locate the correct center with a tighter box than the ground truth and fail the IoU threshold. The current test has already informed development and is not a final untouched test set. See [results/train-5/RESULTS.md](results/train-5/RESULTS.md) for the complete analysis and [results/train-3/RESULTS.md](results/train-3/RESULTS.md) for the earlier baseline.
 
 ### Repository Structure
 
@@ -187,25 +190,28 @@ yolo detect train \
   batch=16 \
   patience=15 \
   cache=False \
-  name=train-3
+  workers=0 \
+  name=train-5
 ```
 
-After changing the dataset split, start a fresh run from `yolo11n.pt` instead of resuming an old `last.pt`. Use `runs/detect/train-3/weights/best.pt` after training.
+After changing the data or labels, start a fresh run from `yolo11n.pt` instead of resuming an old `last.pt`. Use `runs/detect/train-5/weights/best.pt` after training.
 
 ### Final Evaluation
 
 ```bash
 yolo detect val \
-  model=runs/detect/train-3/weights/best.pt \
+  model=runs/detect/train-5/weights/best.pt \
   data=data.yaml \
   split=test \
-  name=train-3-test
+  workers=0 \
+  name=train-5-test
 ```
 
-Use the test split only for final evaluation, not for repeated parameter tuning. See [TRAINING.md](TRAINING.md) for additional guidance.
+The current test split has already been inspected during error analysis and is now a diagnostic split. Build a separate untouched external test set for final reporting. See [TRAINING.md](TRAINING.md) for additional guidance.
 
 ### Current Limitations
 
 - The number of independent physical leaves is still limited, so metrics should be treated as preliminary.
+- The val split now contains a small number of other-disease negatives, but the number of independent leaves per category remains limited.
 - Most images use a white background; generalization to real orchard environments has not yet been validated.
 - Future data collection should prioritize new leaves, natural backgrounds, varied lighting, and different disease stages rather than additional rotations of the same leaves.

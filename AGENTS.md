@@ -7,8 +7,10 @@
 - 类别固定为 `0: canker`，标注格式为 YOLO 检测格式：`class x_center y_center width height`。
 - 同一片物理叶片的不同角度、旋转、距离照片必须全部放在同一个集合，不能跨 `train`、`val`、`test`。
 - 允许保留重复或重压缩图片，但重复图与其原图必须位于同一集合。
-- `test` 只用于最终评估，不根据 test 结果反复调参。
+- 完全未使用的 `test` 只用于最终评估，不根据 test 结果反复调参；一旦根据其结果修改数据或模型，必须降级为阶段性诊断集。
+- 当前 `dataset/images/test` 已用于 train-4 错误分析，后续只作阶段性诊断。最终汇报前应在模型与阈值固定后，另建由新物理叶片组成的 `external_test` 并一次性评估。
 - 重新拆分数据后，旧的 `labels/*.cache` 移入 `dataset/cache_archive/<日期说明>/`，让 YOLO 重新扫描标签；归档目录不参与训练。
+- 被新标注替代或误放的标签移入 `dataset/label_archive/<日期说明>/`，不直接删除；归档目录不参与训练。
 
 ## 数据变更验证
 
