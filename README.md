@@ -21,7 +21,7 @@
 | --- | ---: | ---: | --- |
 | train | 468 | 662 | 模型训练 |
 | val | 117 | 190 | 模型选择与调参 |
-| test | 78 | 54 | 最终独立评估 |
+| test | 78 | 54 | 阶段性诊断（已参与错误分析） |
 
 数据不是按单张图片随机拆分，而是按物理叶片分组：同一片叶子的旋转、距离和角度变化只会出现在一个集合中，以减少数据泄漏。train 中有 52 张空标签负样本，val 中有 20 张，test 中有 27 张。train 和 val 新增负样本分别来自健康叶和 9 种其他柑橘病虫害，来源清单见 `dataset/manifests/hard_negatives_2026-09-02.csv` 与 `dataset/manifests/hard_negatives_val_2026-09-02.csv`。
 
@@ -37,6 +37,18 @@
 | 当前诊断 test | 0.157 | 0.241 | 0.128 | 0.048 |
 
 困难负样本减少了部分误报，但诊断 test 仍存在明显的框尺度不一致：模型经常在正确中心给出比人工标签更紧的框，因 IoU 不足被统计成漏检。当前 test 已参与错误分析，不能作为最终未见测试集。完整分析、曲线、混淆矩阵与逐图诊断见 [results/train-5/RESULTS.md](results/train-5/RESULTS.md)；更早的基线保留在 [results/train-3/RESULTS.md](results/train-3/RESULTS.md)。
+
+#### 关键结果图
+
+下图是当前最重要的诊断证据：绿色框为 test 原标签，红色框为 `train-5` 预测。多数红框落在绿色框内部，说明模型通常找到了病斑位置，但预测框比旧标签更紧；这会降低 IoU，并把部分定位正确的结果计为错误。
+
+![test 原标签框与 train-5 预测框对比](results/train-5/diagnostic_test_gt_vs_prediction.jpg)
+
+| 训练曲线 | 验证集混淆矩阵 | 诊断 test 混淆矩阵 |
+| --- | --- | --- |
+| ![train-5 训练曲线](results/train-5/training_curves.png) | ![train-5 验证集混淆矩阵](results/train-5/val_confusion_matrix.png) | ![train-5 诊断 test 混淆矩阵](results/train-5/diagnostic_test_confusion_matrix.png) |
+
+PR、F1 曲线和原始 CSV 指标保存在 [`results/train-5/`](results/train-5/) 中。
 
 ### 项目结构
 
@@ -128,7 +140,7 @@ The current dataset contains 663 images and 906 annotated bounding boxes:
 | --- | ---: | ---: | --- |
 | train | 468 | 662 | Model training |
 | val | 117 | 190 | Model selection and tuning |
-| test | 78 | 54 | Final independent evaluation |
+| test | 78 | 54 | Development diagnostic; already inspected |
 
 The dataset is grouped by physical leaf instead of being randomly split image by image. Different rotations, distances, and viewing angles of the same leaf are kept within one split to reduce data leakage. The train, val, and test splits contain 52, 20, and 27 empty-label negative images, respectively. The new train and val negatives come from healthy leaves and nine other citrus disease or pest categories. Their source manifests are stored at `dataset/manifests/hard_negatives_2026-09-02.csv` and `dataset/manifests/hard_negatives_val_2026-09-02.csv`.
 
@@ -144,6 +156,18 @@ The source images come from the dataset by Emon, Ahad, and Rabbany, *Multi-forma
 | current diagnostic test | 0.157 | 0.241 | 0.128 | 0.048 |
 
 The hard negatives reduced some false positives, but the diagnostic test still has a systematic box-size mismatch: predictions often locate the correct center with a tighter box than the ground truth and fail the IoU threshold. The current test has already informed development and is not a final untouched test set. See [results/train-5/RESULTS.md](results/train-5/RESULTS.md) for the complete analysis and [results/train-3/RESULTS.md](results/train-3/RESULTS.md) for the earlier baseline.
+
+#### Key Result Figures
+
+The following comparison is the most important diagnostic evidence. Green boxes are the existing test annotations, while red boxes are `train-5` predictions. Most red boxes fall inside the green boxes, indicating that the model usually finds the lesion but predicts a tighter region. This lowers IoU and causes some correctly localized detections to be counted as errors.
+
+![Existing test annotations versus train-5 predictions](results/train-5/diagnostic_test_gt_vs_prediction.jpg)
+
+| Training curves | Validation confusion matrix | Diagnostic-test confusion matrix |
+| --- | --- | --- |
+| ![train-5 training curves](results/train-5/training_curves.png) | ![train-5 validation confusion matrix](results/train-5/val_confusion_matrix.png) | ![train-5 diagnostic-test confusion matrix](results/train-5/diagnostic_test_confusion_matrix.png) |
+
+The PR and F1 curves and the raw CSV metrics are available in [`results/train-5/`](results/train-5/).
 
 ### Repository Structure
 
