@@ -30,10 +30,12 @@
 - `Citrus Canker67–82` 和 `127–137` 根据本次标注更新保留为空标签困难负样本；空 `.txt` 表示图片中没有 `canker` 目标，并不是新增类别。
 - `Citrus Canker567–586` 已由人工复核，确认包含柑橘溃疡病斑，保留正样本标签。
 - 2026-09-02 替换了 193 个重新标注的标签：train 128 个、val 65 个；对应病斑框由 221 个增加到 371 个。旧标签已归档，未直接删除。
+- 同日按“连续可见坏死组织及紧邻黄晕”口径复核了 test 的 51 张阳性图片：收紧 50 张的标签，`Citrus Canker566` 作为形态存疑的困难样本保留原标签；图片数、阳性图片数和 54 个框总数均未改变。
+- test 重标前的 78 个完整标签快照保存在 `dataset/label_archive/2026-09-02-before-test-tight-reannotation/`，其中附有说明和 SHA-256 校验值。
 - train 当前有 52 张空标签负样本，val 有 20 张空标签负样本，可在模型选择阶段初步评价对其他病害的误报抑制能力。
 - 当前独立物理叶片数量仍较少，val/test 指标只能作为阶段性参考。
 - 后续新增图片时，应先按物理叶片编号分组，再决定整组进入哪个集合。
 
 ## 训练缓存
 
-2026-09-02 数据更新前的 193 个旧标签已归档至 `dataset/label_archive/2026-09-02-before-reannotation-193/`；活动的 `train.cache`、`val.cache` 和 `test.cache` 已归档至 `dataset/cache_archive/2026-09-02-before-train-5-labels-and-hard-negatives/`。增补 val 负样本时没有活动缓存，下次训练时 YOLO 会根据当前数据重新建立缓存。
+2026-09-02 数据更新前的 193 个旧标签已归档至 `dataset/label_archive/2026-09-02-before-reannotation-193/`；当时的 `train.cache`、`val.cache` 和 `test.cache` 已归档至 `dataset/cache_archive/2026-09-02-before-train-5-labels-and-hard-negatives/`。test 紧框重标前的活动 `test.cache` 另行归档至 `dataset/cache_archive/2026-09-02-before-test-tight-reannotation/`；正式复测已根据当前标签重建新缓存。

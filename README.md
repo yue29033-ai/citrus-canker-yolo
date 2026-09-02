@@ -34,21 +34,27 @@
 | 集合 | Precision | Recall | mAP50 | mAP50-95 |
 | --- | ---: | ---: | ---: | ---: |
 | val | 0.646 | 0.558 | 0.578 | 0.193 |
-| 当前诊断 test | 0.157 | 0.241 | 0.128 | 0.048 |
+| 旧框诊断 test（640） | 0.157 | 0.241 | 0.128 | 0.048 |
+| 紧框诊断 test（640） | 0.890 | 0.926 | 0.880 | 0.597 |
+| 紧框诊断 test（960） | 0.838 | 0.963 | **0.919** | **0.681** |
 
-困难负样本减少了部分误报，但诊断 test 仍存在明显的框尺度不一致：模型经常在正确中心给出比人工标签更紧的框，因 IoU 不足被统计成漏检。当前 test 已参与错误分析，不能作为最终未见测试集。完整分析、曲线、混淆矩阵与逐图诊断见 [results/train-5/RESULTS.md](results/train-5/RESULTS.md)；更早的基线保留在 [results/train-3/RESULTS.md](results/train-3/RESULTS.md)。
+旧 test 低分的主因是框尺度不一致。2026-09-02 复核了 51 张阳性图片，收紧其中 50 张的标签，保持 54 个框总数不变；新旧框面积比的中位数为 0.427。`Citrus Canker566` 形态存疑且未被模型检出，本次仍保留其两个旧框，没有为提分删除困难样本。
 
-在不覆盖原标签的临时诊断副本中，将 `518–565` 的旧框宽、高统一缩放至 70% 后，同一权重在 640 尺寸取得 mAP50 0.677，在 960 尺寸取得 mAP50 0.704。这证明框尺度不一致是低 test 数值的主要原因，但缩放比例是在查看预测后确定的，因此只能作为敏感度分析，不能作为正式 test 成绩。
+紧框 test 下，`train-4` 在 640 的 mAP50 略高（0.906 对 0.880），但 `train-5` 在 960 的召回率和 mAP50-95 明显更好，且困难负样本误报更少。当前精度优先的展示组合是 `train-5 + imgsz=960`，但 CPU 推理耗时约为 640 的 2 倍。完整重标方法、公平对照和图表见 [results/train-5-test-tight/RESULTS.md](results/train-5-test-tight/RESULTS.md)。
+
+F1 曲线的最佳置信度约为 0.545，因此当前演示建议使用 `imgsz=960, conf=0.55`。该阈值下的逐图匹配为 52 TP、10 FP、2 FN；51 张阳性图片中检出 50 张。
+
+上述新数值仍不是最终独立测试成绩：这组 test 已用于错误分析，重标又发生在查看预测之后。最终汇报前仍需要新建由独立物理叶片组成的 `external_test`。
 
 #### 关键结果图
 
-下图是当前最重要的诊断证据：绿色框为 test 原标签，红色框为 `train-5` 预测。多数红框落在绿色框内部，说明模型通常找到了病斑位置，但预测框比旧标签更紧；这会降低 IoU，并把部分定位正确的结果计为错误。
+下图中绿色为旧标签，青色为复核后标签，红色为 `train-5` 预测。它直接展示了旧框过宽、新框紧贴病斑，同时保留了 `566` 这个未检出的困难样本。
 
-![test 原标签框与 train-5 预测框对比](results/train-5/diagnostic_test_gt_vs_prediction.jpg)
+![test 旧标签、新标签与 train-5 预测对比](results/train-5-test-tight/reannotation_before_after.jpg)
 
-| 训练曲线 | 验证集混淆矩阵 | 诊断 test 混淆矩阵 |
+| 训练曲线 | 验证集混淆矩阵 | 紧框 test 960 混淆矩阵 |
 | --- | --- | --- |
-| ![train-5 训练曲线](results/train-5/training_curves.png) | ![train-5 验证集混淆矩阵](results/train-5/val_confusion_matrix.png) | ![train-5 诊断 test 混淆矩阵](results/train-5/diagnostic_test_confusion_matrix.png) |
+| ![train-5 训练曲线](results/train-5/training_curves.png) | ![train-5 验证集混淆矩阵](results/train-5/val_confusion_matrix.png) | ![train-5 紧框 test 960 混淆矩阵](results/train-5-test-tight/train5_960_confusion_matrix.png) |
 
 PR、F1 曲线和原始 CSV 指标保存在 [`results/train-5/`](results/train-5/) 中。
 
@@ -155,21 +161,27 @@ The source images come from the dataset by Emon, Ahad, and Rabbany, *Multi-forma
 | Split | Precision | Recall | mAP50 | mAP50-95 |
 | --- | ---: | ---: | ---: | ---: |
 | val | 0.646 | 0.558 | 0.578 | 0.193 |
-| current diagnostic test | 0.157 | 0.241 | 0.128 | 0.048 |
+| old-box diagnostic test (640) | 0.157 | 0.241 | 0.128 | 0.048 |
+| tight-box diagnostic test (640) | 0.890 | 0.926 | 0.880 | 0.597 |
+| tight-box diagnostic test (960) | 0.838 | 0.963 | **0.919** | **0.681** |
 
-The hard negatives reduced some false positives, but the diagnostic test still has a systematic box-size mismatch: predictions often locate the correct center with a tighter box than the ground truth and fail the IoU threshold. The current test has already informed development and is not a final untouched test set. See [results/train-5/RESULTS.md](results/train-5/RESULTS.md) for the complete analysis and [results/train-3/RESULTS.md](results/train-3/RESULTS.md) for the earlier baseline.
+The original test score was dominated by inconsistent box scale. On 2026-09-02, 51 positive images were reviewed, 50 label files were tightened, and all 54 objects were retained. The median new-to-old box-area ratio was 0.427. `Citrus Canker566` remained unchanged as an ambiguous hard positive rather than being removed to improve the metrics.
 
-In a temporary diagnostic copy that did not overwrite the project labels, uniformly scaling the width and height of the old `518–565` boxes to 70% increased mAP50 to 0.677 at 640 pixels and 0.704 at 960 pixels with the same checkpoint. This confirms annotation-scale mismatch as the main cause of the low test numbers. Because the scale factor was selected after inspecting predictions, the result is a sensitivity analysis rather than a formal test score.
+On the revised labels, `train-4` is slightly better in mAP50 at 640 (0.906 versus 0.880), while `train-5` is clearly better at 960 and produces fewer false positives on hard negatives. The current accuracy-oriented demonstration setting is `train-5 + imgsz=960`, at roughly twice the CPU inference cost of 640. See [results/train-5-test-tight/RESULTS.md](results/train-5-test-tight/RESULTS.md) for the complete re-annotation method, fair comparison, figures, and limitations.
+
+The F1 curve peaks at approximately 0.545 confidence, so the current demonstration setting is `imgsz=960, conf=0.55`. Direct matching at this threshold gives 52 TP, 10 FP, and 2 FN, detecting 50 of 51 positive images.
+
+These revised values are still development diagnostics rather than an unbiased final score. The split had already informed error analysis, and re-annotation occurred after predictions had been inspected. A new `external_test` made of independent physical leaves is still required for the final report.
 
 #### Key Result Figures
 
-The following comparison is the most important diagnostic evidence. Green boxes are the existing test annotations, while red boxes are `train-5` predictions. Most red boxes fall inside the green boxes, indicating that the model usually finds the lesion but predicts a tighter region. This lowers IoU and causes some correctly localized detections to be counted as errors.
+Green boxes below are the old annotations, cyan boxes are the reviewed annotations, and red boxes are `train-5` predictions. The comparison shows the original scale mismatch and retains the undetected `566` hard sample.
 
-![Existing test annotations versus train-5 predictions](results/train-5/diagnostic_test_gt_vs_prediction.jpg)
+![Old annotations, revised annotations, and train-5 predictions](results/train-5-test-tight/reannotation_before_after.jpg)
 
-| Training curves | Validation confusion matrix | Diagnostic-test confusion matrix |
+| Training curves | Validation confusion matrix | Tight-box test confusion matrix at 960 |
 | --- | --- | --- |
-| ![train-5 training curves](results/train-5/training_curves.png) | ![train-5 validation confusion matrix](results/train-5/val_confusion_matrix.png) | ![train-5 diagnostic-test confusion matrix](results/train-5/diagnostic_test_confusion_matrix.png) |
+| ![train-5 training curves](results/train-5/training_curves.png) | ![train-5 validation confusion matrix](results/train-5/val_confusion_matrix.png) | ![train-5 tight-box test confusion matrix at 960](results/train-5-test-tight/train5_960_confusion_matrix.png) |
 
 The PR and F1 curves and the raw CSV metrics are available in [`results/train-5/`](results/train-5/).
 

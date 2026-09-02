@@ -1,0 +1,12 @@
+image,ground_truth_boxes,predicted_boxes,true_positive_boxes,false_positive_boxes,false_negative_boxes
+Citrus Canker127,0,1,0,1,0
+Citrus Canker128,0,1,0,1,0
+Citrus Canker129,0,1,0,1,0
+Citrus Canker130,0,1,0,1,0
+Citrus Canker131,0,1,0,1,0
+Citrus Canker132,0,1,0,1,0
+Citrus Canker566,2,0,0,0,2
+Citrus Canker79,0,1,0,1,0
+Citrus Canker80,0,1,0,1,0
+Citrus Canker81,0,1,0,1,0
+Citrus Canker82,0,1,0,1,0

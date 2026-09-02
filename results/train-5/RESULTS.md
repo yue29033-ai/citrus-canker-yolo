@@ -6,7 +6,7 @@
 
 ### 一句话判断
 
-`train-5` 已正常完成，困难负样本降低了一部分“见到异常斑块就报 canker”的问题，但当前诊断 test 的框标注尺度与新训练标签不一致，使标准检测 mAP 明显低估了模型找到病斑中心的能力。该模型仍是阶段性实验结果，暂时不能作为最终模型。
+`train-5` 已正常完成。后续紧框复核证实，旧 test 的低 mAP 主要由标注框过宽造成，而不是模型没有找到病斑；`train-5` 在紧框诊断 test 的 960 尺寸下达到 mAP50 0.919、mAP50-95 0.681。但这组 test 已参与错误分析和重标，仍不是最终独立测试。
 
 ### 实验配置
 
@@ -31,9 +31,11 @@
 | 集合 | 图片 | 标注框 | Precision | Recall | mAP50 | mAP50-95 | 说明 |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | val | 117 | 190 | 0.646 | 0.558 | 0.578 | 0.193 | 用于模型选择 |
-| 当前诊断 test | 78 | 54 | 0.157 | 0.241 | 0.128 | 0.048 | 已参与错误分析，不是最终未见测试集 |
+| 旧框诊断 test（640） | 78 | 54 | 0.157 | 0.241 | 0.128 | 0.048 | 重标前历史结果 |
+| 紧框诊断 test（640） | 78 | 54 | 0.890 | 0.926 | 0.880 | 0.597 | 复核后阶段性结果 |
+| 紧框诊断 test（960） | 78 | 54 | 0.838 | 0.963 | 0.919 | 0.681 | 当前精度优先配置 |
 
-val 指标比 train-4 高，但 train、val 的标签已经重新标注，而且 val 新增了 20 张负样本，因此不能把两轮 val 指标作为严格的单变量对照。当前 test 的标准检测指标低于 train-4，也不能简单解释为模型完全退化，原因见下方框尺度审计。
+val 指标比 train-4 高，但 train、val 的标签已经重新标注，而且 val 新增了 20 张负样本，因此不能把两轮 val 指标作为严格的单变量对照。在同一套紧框 test 上，train-4 与 train-5 在 640 的 mAP50-95 几乎相同（0.599 对 0.597）；train-5 在 960 的表现更好，但推理耗时约翻倍。
 
 ### 困难负样本是否有效
 
@@ -72,6 +74,21 @@ val 指标比 train-4 高，但 train、val 的标签已经重新标注，而且
 
 这些数值不能替代正式 test 指标：70% 比例是在查看当前预测后确定的，属于诊断性敏感度分析，并非独立人工真值。它证明“统一人工标注可能显著恢复指标”，不证明模型已经达到 mAP50=0.704。
 
+### 紧框复核后的诊断结果
+
+2026-09-02 复核了 test 的 51 张阳性图片，收紧其中 50 张的标签，保持 54 个框不变。新框与旧框面积比的中位数为 0.427。标注候选依据可见褐色坏死组织与紧邻黄晕生成，再逐图查看；模型预测只作为质量复核，没有直接复制为真值。`Citrus Canker566` 因形态存疑且未被检出，本次保留旧标签作为困难样本。
+
+| 模型 | imgsz | Precision | Recall | mAP50 | mAP50-95 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| train-4 | 640 | 0.890 | 0.926 | 0.906 | 0.599 |
+| train-5 | 640 | 0.890 | 0.926 | 0.880 | 0.597 |
+| train-4 | 960 | 0.811 | 0.870 | 0.909 | 0.522 |
+| train-5 | 960 | 0.838 | 0.963 | 0.919 | 0.681 |
+
+完整图表、重标审计 CSV 和对照说明见 [`results/train-5-test-tight/RESULTS.md`](../train-5-test-tight/RESULTS.md)。这些数值仍属于阶段性诊断，因为 test 已经被查看并用于重标。
+
+![旧标签、新标签和 train-5 预测对比](../train-5-test-tight/reannotation_before_after.jpg)
+
 ![Annotation-scale diagnostic confusion matrix at 960](annotation_scale_diagnostic_960_confusion_matrix.png)
 
 ![Annotation-scale diagnostic PR curve at 960](annotation_scale_diagnostic_960_pr_curve.png)
@@ -88,11 +105,11 @@ val 指标比 train-4 高，但 train、val 的标签已经重新标注，而且
 
 ### 下一步
 
-1. 暂时不要换 YOLO11s 或继续增加 epochs；960 分辨率可作为后续单变量对照，但它不是当前主要问题。
-2. 按当前新标签的“紧贴病斑”标准人工重新检查当前诊断 test 的 51 张正样本，尤其是 `518–565`，并补齐一图多病斑时的遗漏框；不要直接采用本次统一缩框结果。
-3. 将 `Shot Hole` 和 `Foliage damaged` 作为重点困难负样本类型，再增加不同物理叶片，但不能把当前 val 图片移入 train。
-4. 统一标签后重新评估 train-4 与 train-5；只有使用同一套 ground truth 才能判断模型是否真正提升。
-5. 最终汇报前另建完全未参与调参的 `external_test`，在模型和阈值固定后一次性评估。
+1. 暂时不要换 YOLO11s 或继续增加 epochs；当前更缺新的独立物理叶片。
+2. 建立完全未参与调参的 `external_test`，覆盖溃疡、健康叶、穿孔病和叶片损伤，在模型与阈值固定后只评估一次。
+3. 对 `Citrus Canker566` 的病害身份和两个框做植物病理复核，不根据模型是否检出来决定标签。
+4. 下一轮优先增加新的 `Shot Hole` 和 `Foliage damaged` 困难负样本，不能把当前 val 图片移入 train。
+5. 如果测试 960 训练，保持数据不变并从 `yolo11n.pt` 重新训练，使它成为与 640 训练的单变量对照。
 
 ### 模型文件
 
@@ -108,14 +125,16 @@ SHA-256：
 
 ### Overall Assessment
 
-`train-5` completed normally and reduced some false positives on healthy leaves and other citrus diseases. However, the current diagnostic test annotations use substantially larger boxes than the newly revised train/val annotations. Many predictions correctly locate the lesion center but fail the IoU threshold because their boxes are tighter. The run is therefore an intermediate experiment, not a final detector.
+`train-5` completed normally. The later tight-box review confirmed that the very low original test score was dominated by oversized ground-truth boxes rather than failure to locate lesions. On the revised diagnostic labels, `train-5` reached mAP50/mAP50-95 of 0.880/0.597 at 640 and 0.919/0.681 at 960. This remains a development result because the split had already informed error analysis and re-annotation.
 
 ### Key Metrics
 
 | Split | Images | Instances | Precision | Recall | mAP50 | mAP50-95 | Role |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | val | 117 | 190 | 0.646 | 0.558 | 0.578 | 0.193 | Model selection |
-| diagnostic test | 78 | 54 | 0.157 | 0.241 | 0.128 | 0.048 | Previously inspected diagnostic split |
+| old-box diagnostic test (640) | 78 | 54 | 0.157 | 0.241 | 0.128 | 0.048 | Historical pre-review result |
+| tight-box diagnostic test (640) | 78 | 54 | 0.890 | 0.926 | 0.880 | 0.597 | Reviewed development result |
+| tight-box diagnostic test (960) | 78 | 54 | 0.838 | 0.963 | 0.919 | 0.681 | Accuracy-oriented setting |
 
 At `conf=0.25`, 16 of the 20 newly added negative validation images produced no detections. The remaining false positives were confined to two `Foliage damaged` images and two `Shot Hole` images. On the diagnostic test, false-positive negative images decreased from 18/27 for train-4 to 14/27 for train-5, while predicted boxes on negatives decreased from 35 to 16.
 
@@ -141,7 +160,7 @@ These numbers must not replace the formal test metrics. The 70% factor was selec
 
 ### Recommended Next Step
 
-Manually audit and consistently re-annotate the positive diagnostic-test boxes before comparing train-4 and train-5; do not directly adopt the uniformly scaled diagnostic labels. Add more independent `Shot Hole` and `Foliage damaged` negatives, then build a new untouched external test set for final reporting. Treat 960-pixel inference only as a single-variable comparison and do not change model size, resolution, and data simultaneously.
+Build a new untouched external test set from independent physical leaves and evaluate it only after the model, image size, and confidence threshold are frozen. Review the disease identity of `Citrus Canker566`, and add new independent `Shot Hole` and `Foliage damaged` negatives before any later training run. If 960-pixel training is tested, keep the dataset unchanged and start from `yolo11n.pt` so the comparison remains single-variable.
 
 The local `best.pt` SHA-256 is:
 
