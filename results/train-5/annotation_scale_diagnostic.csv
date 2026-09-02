@@ -1,0 +1,4 @@
+label_version,imgsz,precision,recall,map50,map50_95,inference_ms_per_image,status
+existing_diagnostic_test,640,0.157,0.241,0.128,0.048,,diagnostic_baseline
+temporary_gt_scale_070,640,0.726,0.778,0.677,0.210,96.2,sensitivity_analysis_only
+temporary_gt_scale_070,960,0.713,0.759,0.704,0.234,213.8,sensitivity_analysis_only

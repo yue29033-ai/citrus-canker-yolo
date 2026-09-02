@@ -38,6 +38,8 @@
 
 困难负样本减少了部分误报，但诊断 test 仍存在明显的框尺度不一致：模型经常在正确中心给出比人工标签更紧的框，因 IoU 不足被统计成漏检。当前 test 已参与错误分析，不能作为最终未见测试集。完整分析、曲线、混淆矩阵与逐图诊断见 [results/train-5/RESULTS.md](results/train-5/RESULTS.md)；更早的基线保留在 [results/train-3/RESULTS.md](results/train-3/RESULTS.md)。
 
+在不覆盖原标签的临时诊断副本中，将 `518–565` 的旧框宽、高统一缩放至 70% 后，同一权重在 640 尺寸取得 mAP50 0.677，在 960 尺寸取得 mAP50 0.704。这证明框尺度不一致是低 test 数值的主要原因，但缩放比例是在查看预测后确定的，因此只能作为敏感度分析，不能作为正式 test 成绩。
+
 #### 关键结果图
 
 下图是当前最重要的诊断证据：绿色框为 test 原标签，红色框为 `train-5` 预测。多数红框落在绿色框内部，说明模型通常找到了病斑位置，但预测框比旧标签更紧；这会降低 IoU，并把部分定位正确的结果计为错误。
@@ -156,6 +158,8 @@ The source images come from the dataset by Emon, Ahad, and Rabbany, *Multi-forma
 | current diagnostic test | 0.157 | 0.241 | 0.128 | 0.048 |
 
 The hard negatives reduced some false positives, but the diagnostic test still has a systematic box-size mismatch: predictions often locate the correct center with a tighter box than the ground truth and fail the IoU threshold. The current test has already informed development and is not a final untouched test set. See [results/train-5/RESULTS.md](results/train-5/RESULTS.md) for the complete analysis and [results/train-3/RESULTS.md](results/train-3/RESULTS.md) for the earlier baseline.
+
+In a temporary diagnostic copy that did not overwrite the project labels, uniformly scaling the width and height of the old `518–565` boxes to 70% increased mAP50 to 0.677 at 640 pixels and 0.704 at 960 pixels with the same checkpoint. This confirms annotation-scale mismatch as the main cause of the low test numbers. Because the scale factor was selected after inspecting predictions, the result is a sensitivity analysis rather than a formal test score.
 
 #### Key Result Figures
 

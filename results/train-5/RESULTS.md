@@ -58,6 +58,24 @@ val 指标比 train-4 高，但 train、val 的标签已经重新标注，而且
 
 这说明当前 test mAP 同时混合了模型误差和标注尺度误差。在统一 test 的框选标准之前，不能用 0.128 作为模型实际识别能力的唯一结论。
 
+### 标注尺度一致性诊断（非正式指标）
+
+为验证上述判断，2026-09-02 建立了一个不覆盖正式标签的临时副本：仅将 `Citrus Canker518–565` 的现有框围绕原中心统一缩放至宽、高的 70%，其余阳性框和全部阴性空标签保持不变，再使用同一个 `best.pt` 评估。
+
+| 标签版本 | imgsz | Precision | Recall | mAP50 | mAP50-95 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 现有诊断 test | 640 | 0.157 | 0.241 | 0.128 | 0.048 |
+| 70% 框尺度临时副本 | 640 | 0.726 | 0.778 | 0.677 | 0.210 |
+| 70% 框尺度临时副本 | 960 | 0.713 | 0.759 | 0.704 | 0.234 |
+
+统一缩框后，640 尺寸的 mAP50 提高 0.549；将推理尺寸从 640 提高到 960 又带来 0.027 的 mAP50 和 0.024 的 mAP50-95 增益，但推理耗时由每张约 96 ms 增至 214 ms。由此可见，主要矛盾是标签尺度；提高分辨率只有次要增益。
+
+这些数值不能替代正式 test 指标：70% 比例是在查看当前预测后确定的，属于诊断性敏感度分析，并非独立人工真值。它证明“统一人工标注可能显著恢复指标”，不证明模型已经达到 mAP50=0.704。
+
+![Annotation-scale diagnostic confusion matrix at 960](annotation_scale_diagnostic_960_confusion_matrix.png)
+
+![Annotation-scale diagnostic PR curve at 960](annotation_scale_diagnostic_960_pr_curve.png)
+
 ![Training curves](training_curves.png)
 
 ![Validation confusion matrix](val_confusion_matrix.png)
@@ -70,8 +88,8 @@ val 指标比 train-4 高，但 train、val 的标签已经重新标注，而且
 
 ### 下一步
 
-1. 暂时不要换 YOLO11s、提高分辨率或继续增加 epochs。
-2. 按当前新标签的“紧贴病斑”标准重新检查当前诊断 test 的 51 张正样本，尤其是 `518–565`，并补齐一图多病斑时的遗漏框。
+1. 暂时不要换 YOLO11s 或继续增加 epochs；960 分辨率可作为后续单变量对照，但它不是当前主要问题。
+2. 按当前新标签的“紧贴病斑”标准人工重新检查当前诊断 test 的 51 张正样本，尤其是 `518–565`，并补齐一图多病斑时的遗漏框；不要直接采用本次统一缩框结果。
 3. 将 `Shot Hole` 和 `Foliage damaged` 作为重点困难负样本类型，再增加不同物理叶片，但不能把当前 val 图片移入 train。
 4. 统一标签后重新评估 train-4 与 train-5；只有使用同一套 ground truth 才能判断模型是否真正提升。
 5. 最终汇报前另建完全未参与调参的 `external_test`，在模型和阈值固定后一次性评估。
@@ -103,9 +121,27 @@ At `conf=0.25`, 16 of the 20 newly added negative validation images produced no 
 
 Among 51 positive diagnostic-test images, 50 produced at least one prediction. Every one of those 50 images had a prediction center inside its ground-truth box, but the median predicted box area was only 41.2% of the median ground-truth area. This systematic box-size mismatch substantially depresses IoU-based mAP.
 
+### Annotation-Scale Consistency Diagnostic (Not a Formal Test)
+
+To test this explanation without overwriting the project labels, a temporary copy was created on 2026-09-02. Only the width and height of the existing boxes for `Citrus Canker518–565` were uniformly scaled to 70% around their original centers. All other positive boxes and all empty negative labels were unchanged, and the same `best.pt` was evaluated.
+
+| Label version | imgsz | Precision | Recall | mAP50 | mAP50-95 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Existing diagnostic test | 640 | 0.157 | 0.241 | 0.128 | 0.048 |
+| Temporary 70%-scale copy | 640 | 0.726 | 0.778 | 0.677 | 0.210 |
+| Temporary 70%-scale copy | 960 | 0.713 | 0.759 | 0.704 | 0.234 |
+
+At 640 pixels, consistent box scaling increased mAP50 by 0.549. Increasing inference size from 640 to 960 added only 0.027 mAP50 and 0.024 mAP50-95, while inference time increased from approximately 96 ms to 214 ms per image. Annotation scale is therefore the dominant issue; higher resolution provides a smaller secondary gain.
+
+These numbers must not replace the formal test metrics. The 70% factor was selected after inspecting current predictions, so this is a diagnostic sensitivity analysis rather than independent ground truth. It demonstrates that consistent manual re-annotation may recover the metrics; it does not prove that the model has achieved mAP50=0.704.
+
+![Annotation-scale diagnostic confusion matrix at 960](annotation_scale_diagnostic_960_confusion_matrix.png)
+
+![Annotation-scale diagnostic PR curve at 960](annotation_scale_diagnostic_960_pr_curve.png)
+
 ### Recommended Next Step
 
-Audit and consistently re-annotate the positive diagnostic-test boxes before comparing train-4 and train-5. Add more independent `Shot Hole` and `Foliage damaged` negatives, then build a new untouched external test set for final reporting. Do not change model size, resolution, and data simultaneously.
+Manually audit and consistently re-annotate the positive diagnostic-test boxes before comparing train-4 and train-5; do not directly adopt the uniformly scaled diagnostic labels. Add more independent `Shot Hole` and `Foliage damaged` negatives, then build a new untouched external test set for final reporting. Treat 960-pixel inference only as a single-variable comparison and do not change model size, resolution, and data simultaneously.
 
 The local `best.pt` SHA-256 is:
 
