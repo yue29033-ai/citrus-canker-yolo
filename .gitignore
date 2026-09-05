@@ -25,3 +25,13 @@ dataset/label_archive/
 *.onnx
 *.engine
 *.torchscript
+
+# Local workbench inputs, predictions, evaluation snapshots and review history
+/workspace/
+
+# Manual segmentation pilot: local images and annotation exports
+/segmentation_pilot/images/
+/segmentation_pilot/annotations/
+/segmentation_pilot/candidates.jpg
+/segmentation_pilot/selection_preview.jpg
+/segmentation_pilot/excluded_preparation/

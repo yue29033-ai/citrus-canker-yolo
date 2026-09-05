@@ -4,7 +4,19 @@
 
 ## 中文说明
 
-### 项目简介
+### 简易本地检测页面
+
+现在可在项目中双击 `打开病斑工作台.command`，使用简化的本地页面：上传一张照片、查看病斑框选与检出数量、切换原图、保存结果图。按最新要求不展示病例复核和评估对比入口；旧代码与历史记录保留备查。上传与结果保存在本机 `workspace/`，不修改原图或训练标签。详见 [WORKBENCH.md](WORKBENCH.md)。
+
+命令行入口：`python app.py --open`；统一评估：`python evaluate.py --split val --map`。默认只监听 `127.0.0.1:8765`，不公开部署。
+
+### 病斑面积：轮廓标注准备
+
+主页面底部的“准备面积模型：标注轮廓”打开独立标注页。在 10 张试标图片上逐点描出 `leaf`（整叶）和 `canker`（病斑），按 Enter 闭合，填写物理叶片编号并保存。支持草稿及重新打开，修改前会留存旧版。操作见 [标注说明](segmentation_pilot/标注说明.md)。
+
+首次克隆后运行 `python segmentation_pilot/prepare_pilot.py` 恢复试标图片副本。全部确认完成后，运行 `python prepare_segmentation.py` 检查并导出独立的分割训练数据。**目前还没有人工轮廓和分割模型，页面不显示病斑面积比例，也不会自动开始训练。** 本机标注、历史和导出数据不提交到 GitHub。
+
+### 模型与任务
 
 本项目使用 Ultralytics YOLO11 检测甜橙叶片上的柑橘溃疡病斑，面向人工智能通识课算法实践。当前任务为单类别目标检测：
 
@@ -131,7 +143,19 @@ yolo detect val \
 
 ## English
 
+### Simple local UI and segmentation preparation
+
+Run `python app.py --open` for single-image detection, lesion count, original-image comparison and result download. The separate `/annotate` page lets you manually draw one `leaf` polygon and individual `canker` polygons, save drafts, and confirm physical leaf IDs. Existing detection labels are never overwritten.
+
+After cloning, run `python segmentation_pilot/prepare_pilot.py` to restore the 10 pilot image copies. Once all annotations are confirmed, `python prepare_segmentation.py` validates polygons and leaf-group separation, then exports an isolated YOLO segmentation dataset. No segmentation model has been trained yet; area measurements are not available. Local annotations, revision history, images and exports are excluded from Git.
+
 ### Overview
+
+### Local workbench (Phase 1)
+
+Run `python app.py --open` for the simplified single-image detection page: upload, inspect boxes and detected lesion count, compare the original, and save the result image. Review and evaluation pages have been removed from the active interface; their existing code and records are retained, not deleted. Inputs and exports remain in the ignored local `workspace/`; source labels are never edited. See [WORKBENCH.md](WORKBENCH.md) for usage and limitations.
+
+### Model and task
 
 This project uses Ultralytics YOLO11 to detect citrus canker lesions on sweet-orange leaves. It was developed as an algorithm practice project for a general artificial intelligence course. The current task is single-class object detection:
 

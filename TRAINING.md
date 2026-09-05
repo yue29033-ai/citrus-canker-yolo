@@ -56,12 +56,15 @@ yolo detect val \
 yolo detect predict \
   model=runs/detect/train-5/weights/best.pt \
   source="/你的图片或文件夹路径" \
-  conf=0.25 \
+  imgsz=960 \
+  conf=0.55 \
   workers=0 \
   name=train-5-predict
 ```
 
 临时找来的陌生图片放在 `demo_images/`，只用于演示或观察，不要随手混入正式 test。最终外部测试图片需要人工标注，才能计算 Precision、Recall 和 mAP。
+
+以上是当前诊断集的演示参数，并非独立外部验证后的最佳阈值。现在也可双击 `打开病斑工作台.command` 使用本地检测页面，或通过 `python evaluate.py --split val --map` 运行统一评估。详见 [WORKBENCH.md](WORKBENCH.md)。
 
 ## 5. 判断是否值得继续训练
 

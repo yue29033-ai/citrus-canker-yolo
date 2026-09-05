@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>柑橘病斑识别</title>
+  <link rel="stylesheet" href="/web/simple.css">
+  <script src="/web/simple.js" defer></script>
+</head>
+<body>
+  <main>
+    <header><h1>柑橘病斑识别</h1><p>上传一张叶片照片，查看病斑位置和数量。</p></header>
+    <div class="layout">
+      <section class="upload-panel" aria-label="上传叶片">
+        <label id="drop-zone" class="drop-zone" for="file-input">
+          <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="6" y="8" width="36" height="32" rx="6"/><circle cx="17" cy="18" r="3"/><path d="m9 35 11-11 8 8 5-5 6 8"/></svg>
+          <strong id="file-label">选择或拖入照片</strong>
+          <span>JPG / PNG / WebP · 最大 10 MB</span>
+          <input id="file-input" type="file" accept="image/jpeg,image/png,image/webp">
+        </label>
+        <button id="detect-button" type="button" disabled>识别病斑</button>
+        <p id="status" role="status" aria-live="polite">正在连接本地模型…</p>
+        <p id="error" role="alert" hidden></p>
+      </section>
+      <section class="result-panel" aria-label="识别结果">
+        <div class="result-top"><h2>识别结果</h2><div id="result-actions" hidden><button id="original-button" class="text-button" type="button" aria-pressed="false">查看原图</button><a id="download" download>保存结果图</a></div></div>
+        <div id="placeholder" class="placeholder">上传后，结果会显示在这里</div>
+        <img id="result-image" alt="叶片照片" hidden>
+        <div id="result-info" hidden><div class="count"><span>检出疑似病斑</span><strong id="lesion-count">—</strong><span>处</span></div><p>未检出病斑不代表叶片健康，结果仅供辅助观察。</p></div>
+      </section>
+    </div>
+    <p class="annotation-link"><a href="/annotate">准备面积模型：标注轮廓</a></p>
+  </main>
+</body>
+</html>

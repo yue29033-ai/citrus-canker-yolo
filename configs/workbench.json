@@ -1,0 +1,11 @@
+{
+  "weights": "runs/detect/train-5/weights/best.pt",
+  "imgsz": 960,
+  "conf": 0.55,
+  "iou": 0.7,
+  "match_iou": 0.5,
+  "device": "cpu",
+  "max_det": 300,
+  "split": "val",
+  "include_map": false
+}

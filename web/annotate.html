@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>轮廓标注</title><link rel="stylesheet" href="/web/annotate.css"><script src="/web/annotate.js" defer></script></head>
+<body><main>
+  <header><div><h1>轮廓标注</h1><p>先描整片叶子，再逐个描病斑。标完后才能训练面积模型。</p></div><a href="/">返回识别</a></header>
+  <div class="toolbar"><label>照片 <select id="sample"></select></label><span id="completion"></span><label>画什么 <select id="kind"><option value="leaf">整片叶子</option><option value="canker">病斑</option></select></label><button id="zoom-out" type="button">−</button><span id="zoom-label">1×</span><button id="zoom-in" type="button">＋</button></div>
+  <p class="hint">沿边缘逐点点击 → 按 Enter 或“闭合轮廓”。绿色是叶片，橙色是病斑。放大后可滚动照片。</p>
+  <div class="layout"><div id="viewport"><canvas id="canvas" aria-label="点击图片描绘多边形轮廓"></canvas></div>
+    <aside><div class="buttons"><button id="finish" type="button">闭合轮廓</button><button id="undo" type="button">撤回一点</button></div><ul id="shapes"></ul>
+      <label>叶片编号<input id="leaf-id" maxlength="100" placeholder="同一片叶子的照片填相同编号"></label>
+      <label class="check"><input id="complete" type="checkbox">这张图的叶片和全部病斑已标完</label>
+      <button id="save" class="primary" type="button">保存标注</button><p id="message" role="status" aria-live="polite">正在加载图片…</p>
+      <p class="hint">没有溃疡也要描整叶。不包括叶柄、阴影；整叶内部保留病斑区域。保存草稿可以稍后继续。</p>
+    </aside></div>
+</main></body></html>

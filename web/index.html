@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#234d3c">
+  <title>青叶 · 柑橘病斑工作台</title>
+  <link rel="stylesheet" href="/web/style.css">
+  <script src="/web/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="工作台导航">
+      <a class="brand" href="#detect" aria-label="青叶工作台首页">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40"><path d="M30 8C15 7 7 14 9 24c2 8 13 10 19 2 4-5 4-12 2-18Z"/><path d="m11 31 15-17M17 24l-1-8M21 20l7-1"/></svg></span>
+        <span>青叶<span class="brand-sub">柑橘病斑工作台</span></span>
+      </a>
+      <div class="nav-label">工作空间</div>
+      <nav class="nav-list">
+        <button type="button" class="nav-item active" data-page="detect" aria-current="page"><span class="nav-icon" aria-hidden="true">⌘</span>图片检测<span class="nav-number">01</span></button>
+        <button type="button" class="nav-item" data-page="review"><span class="nav-icon" aria-hidden="true">▤</span>病例复核<span class="nav-number">02</span></button>
+        <button type="button" class="nav-item" data-page="evaluate"><span class="nav-icon" aria-hidden="true">▥</span>评估对比<span class="nav-number">03</span></button>
+      </nav>
+      <div class="sidebar-note"><span class="tiny-leaf" aria-hidden="true">↗</span><p>从看见病斑<br>到理解结果。</p><small>观察 · 检测 · 复核</small></div>
+      <div class="sidebar-bottom"><span class="status-dot" id="side-dot"></span><span id="side-status">连接本地服务中</span><small>LOCAL WORKBENCH</small></div>
+    </aside>
+
+    <main id="main" class="main">
+      <header class="topbar"><div class="breadcrumb">青叶 <span>/</span> <span id="breadcrumb-page">图片检测</span></div><div class="local-badge"><span class="status-dot"></span>本地运行 · 数据留在本机</div></header>
+      <div id="global-error" class="notice error" role="alert" hidden></div>
+      <div id="global-success" class="notice success" role="status" hidden></div>
+      <div id="global-warnings" class="notice warning" hidden></div>
+
+      <section id="page-detect" class="page" aria-labelledby="detect-title">
+        <div class="page-heading"><div><div class="eyebrow">CITRUS LEAF LAB</div><h1 id="detect-title">每一片叶子，都值得仔细观察。</h1><p>上传柑橘叶片照片，定位疑似溃疡病斑，再查看细节。</p></div><span class="model-tag">YOLO11n <span id="model-state">检查中</span></span></div>
+        <div class="detect-layout">
+          <section class="card upload-card" aria-labelledby="upload-title">
+            <div class="section-head"><h2 id="upload-title">开始一次检测</h2><span class="step-tag">STEP 01</span></div>
+            <label class="upload-zone" id="drop-zone" for="file-input"><span class="upload-symbol" aria-hidden="true"><svg viewBox="0 0 48 48"><rect x="7" y="9" width="34" height="30" rx="7"/><circle cx="17" cy="18" r="3"/><path d="m10 34 10-10 7 7 5-5 7 8"/><path d="M35 5v10m-5-5h10"/></svg></span><strong>拖入叶片照片，或点击选择</strong><span>支持多张图片，一次最多 12 张</span><small>JPG / PNG / WebP · 单张 ≤ 10 MB · 合计 ≤ 40 MB</small><input id="file-input" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+            <ul id="file-list" class="file-list" aria-label="已选择的图片"></ul>
+            <div class="upload-actions"><button id="predict-button" class="button primary" type="button" disabled>开始检测 <span aria-hidden="true">↗</span></button><button id="demo-button" class="button secondary" type="button" disabled>试用示例</button></div>
+            <details class="settings"><summary>检测设置 <span>演示默认：960 / 0.55</span></summary><div class="settings-grid"><label>图像尺寸<select id="predict-imgsz"><option value="640">640 · 更快</option><option value="960" selected>960 · 更多细节</option></select></label><label>置信度阈值 <output id="predict-conf-value" for="predict-conf">0.55</output><input id="predict-conf" type="range" min="0.05" max="0.95" step="0.05" value="0.55"></label></div><p class="help">阈值越低通常显示更多候选框，也可能增加误报。置信度不是患病概率。</p></details>
+          </section>
+          <aside class="card guide-card"><span class="eyebrow">观察指南</span><h2>让病斑<br>成为照片的主角。</h2><div class="leaf-illustration" aria-hidden="true"><svg viewBox="0 0 220 150"><path class="leaf-shape" d="M35 119C23 68 59 16 171 28c18 65-21 118-95 104Z"/><path class="leaf-vein" d="m34 138 119-89M71 110 63 69M101 88l-2-41M100 89l45 16M127 68l30 10"/><circle cx="116" cy="61" r="12"/><circle cx="75" cy="91" r="8"/><circle cx="135" cy="103" r="6"/><rect x="98" y="43" width="36" height="36" rx="5"/></svg></div><p>自然光、清晰对焦、叶片完整入镜。复杂背景、反光和虫伤都可能影响检测。</p><div class="guide-footer">结果用于学习与辅助观察<br><strong>未检出病斑 ≠ 叶片健康</strong></div></aside>
+        </div>
+        <div id="detect-progress" class="job-progress" role="status" aria-live="polite" hidden><span class="spinner" aria-hidden="true"></span><div><strong>正在检测</strong><p class="progress-message"></p></div><progress value="0" max="1" aria-label="检测进度"></progress></div>
+        <section class="results-section" aria-labelledby="detect-results-title"><div class="section-head"><div><h2 id="detect-results-title">检测结果</h2><p class="section-description">选择一张照片，查看框选结果与病斑细节。</p></div><label class="compact-label">历史记录<select id="detect-run-select" aria-label="选择历史检测"><option value="">本次检测</option></select></label></div><div id="detect-empty" class="empty-state"><span aria-hidden="true">⌁</span><h3>第一片叶子，从这里开始</h3><p>上传照片或试用示例，检测结果会保存在本机。</p></div><div id="detect-results" hidden><div id="detect-summary" class="result-summary"></div><div id="detect-cases" class="case-strip" aria-label="检测图片"></div><div id="detect-viewer" class="viewer"></div><div id="detect-downloads" class="download-row"></div></div></section>
+      </section>
+
+      <section id="page-review" class="page" aria-labelledby="review-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">HUMAN IN THE LOOP</div><h1 id="review-title">让每一次误判，都留下线索。</h1><p>检查历史检测和评估记录，整理误报、漏检与待确认的病例。</p></div><span class="outline-tag">人工复核</span></div>
+        <div class="notice subtle">复核记录单独保存，不会修改原始标签，也不会自动把图片加入训练集。</div>
+        <div class="review-toolbar"><label>检测 / 评估记录<select id="review-run-select"><option value="">请选择记录</option></select></label><label>筛选病例<select id="review-filter"><option value="all">全部病例</option><option value="unreviewed">未复核</option><option value="false_positive">误报</option><option value="false_negative">漏检</option><option value="uncertain">待确认</option><option value="correct">已确认正确</option></select></label><a href="/api/reviews.csv" class="button secondary small" download>导出复核历史 ↓</a><span id="review-count" class="muted"></span></div>
+        <div id="review-empty" class="empty-state"><span aria-hidden="true">▤</span><h3>为下一次改进积累证据</h3><p>先选择一条已有记录，再逐张复核。未标注的上传图片没有自动判定的对错。</p></div>
+        <div id="review-content" class="review-layout" hidden><div><div id="review-cases" class="case-strip" aria-label="待复核病例"></div><div id="review-viewer" class="viewer"></div></div><form id="review-form" class="card review-form"><div class="section-head"><h2>记录你的判断</h2><span class="step-tag">REVIEW</span></div><p id="review-case-name" class="selected-name"></p><fieldset><legend>本张图片的复核结论</legend><label class="radio-option"><input type="radio" name="review-status" value="correct" required><span>结果正确<small>没有发现明显误报或漏检</small></span></label><label class="radio-option"><input type="radio" name="review-status" value="false_positive"><span>存在误报<small>把非溃疡区域框成病斑</small></span></label><label class="radio-option"><input type="radio" name="review-status" value="false_negative"><span>存在漏检<small>有真实病斑未被框出</small></span></label><label class="radio-option"><input type="radio" name="review-status" value="uncertain"><span>需要确认<small>目前无法可靠判断</small></span></label></fieldset><label>可能原因<input id="review-reason" type="text" maxlength="100" list="reason-options" placeholder="例如：虫伤、反光、其他病害"><datalist id="reason-options"><option value="虫伤"><option value="反光"><option value="其他病害"><option value="病斑过小"><option value="模糊 / 遮挡"><option value="标注存疑"></datalist></label><label>补充说明<textarea id="review-note" rows="4" maxlength="1000" placeholder="记录具体位置、判断依据或需要核实的问题"></textarea></label><button id="review-save" class="button primary" type="submit">保存复核记录</button><p class="help">若同时存在误报和漏检，选择主要问题，并在说明中记录另一项。</p></form></div>
+      </section>
+
+      <section id="page-evaluate" class="page" aria-labelledby="evaluate-title" hidden>
+        <div class="page-heading"><div><div class="eyebrow">MEASURE WITH CONTEXT</div><h1 id="evaluate-title">看见成绩，也看见边界。</h1><p>在带标签的数据上统一评估，用相同口径比较模型表现。</p></div><span class="outline-tag">固定权重 · 可复现</span></div>
+        <section class="card evaluation-settings"><div class="section-head"><h2>新建一次评估</h2><span id="dataset-counts" class="muted">读取数据集信息中</span></div><div class="evaluation-controls"><label>数据集合<select id="eval-split"><option value="val">val · 验证集</option><option value="test">test · 阶段性诊断集</option></select></label><label>图像尺寸<select id="eval-imgsz"><option value="640">640</option><option value="960" selected>960</option></select></label><label>置信度阈值<input id="eval-conf" type="number" min="0.01" max="0.99" step="0.01" value="0.55"></label><label class="checkbox-label"><input id="eval-map" type="checkbox"><span>同时计算 mAP<small>跨多个阈值统计，耗时更长</small></span></label><button id="evaluate-button" class="button primary" type="button" disabled>运行评估 <span aria-hidden="true">↗</span></button></div><p id="eval-split-note" class="help">val 用于开发与比较。默认演示参数来自既有诊断结果，不能替代独立外部测试。</p></section>
+        <div id="evaluate-progress" class="job-progress" role="status" aria-live="polite" hidden><span class="spinner" aria-hidden="true"></span><div><strong>正在评估</strong><p class="progress-message"></p></div><progress value="0" max="1" aria-label="评估进度"></progress></div>
+        <div id="eval-metrics" hidden></div>
+        <section class="results-section"><div class="section-head"><div><h2>评估历史</h2><p class="section-description">只有数据、权重、标注版本和统计口径一致的结果，才适合直接比较。</p></div><button id="refresh-history" class="button secondary small" type="button">刷新记录</button></div><div id="evaluation-history" class="table-wrapper"><div class="empty-state compact"><h3>还没有评估记录</h3><p>运行后会显示固定阈值结果与可选的 mAP。</p></div></div></section>
+      </section>
+      <footer class="footer"><span>青叶 · 柑橘溃疡病斑辅助检测</span><span>保持观察，也保留不确定。</span></footer>
+    </main>
+  </div>
+</body>
+</html>
